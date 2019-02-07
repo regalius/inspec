@@ -1,0 +1,31 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_solo
+  sudo: true
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: ubuntu-18.04
+
+lifecycle:
+  pre_create:
+    - cd ../../../ && gem build inspec.gemspec
+    - mv ../../../inspec-*.gem test/fixture/inspec_habitat_fixture/files/inspec-local.gem
+  post_converge:
+    - local: sleep 10 # Wait for Habitat to load/run hab service before `verify`
+
+suites:
+  - name: default
+    run_list:
+      - recipe[inspec_habitat_fixture]
+    attributes:
+    verifier:
+      attributes:
+        hab_profile_path: '/home/vagrant/hab_test_profile'
+        output_hart_dir: '/home/vagrant/output'
+
